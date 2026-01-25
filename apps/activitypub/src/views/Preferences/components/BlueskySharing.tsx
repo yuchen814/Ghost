@@ -50,12 +50,7 @@ const BlueskySharing: React.FC = () => {
             setIsEditingProfile(true);
         } else {
             setLoading(true);
-            try {
-                await enableBlueskyMutation.mutateAsync();
-            } catch (error) {
-                setLoading(false);
-                toast.error('Something went wrong, please try again.');
-            }
+            await enableBlueskyMutation.mutateAsync();
         }
     };
 
@@ -106,9 +101,7 @@ const BlueskySharing: React.FC = () => {
         retryCountRef.current = 0;
 
         const confirmHandleInterval = setInterval(async () => {
-            retryCountRef.current += 1;
-
-            if (retryCountRef.current > MAX_CONFIRMATION_RETRIES) {
+            if (retryCountRef.current >= MAX_CONFIRMATION_RETRIES) {
                 clearInterval(confirmHandleInterval);
 
                 toast.error('Something went wrong, please try again.');
@@ -119,6 +112,7 @@ const BlueskySharing: React.FC = () => {
                 return;
             }
 
+            retryCountRef.current += 1;
             confirmHandle();
         }, CONFIRMATION_INTERVAL);
 

