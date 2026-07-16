@@ -99,7 +99,12 @@ export class DomainWarmingService {
      */
     async #getHighestCount(): Promise<number> {
         const result = await this.#emailModel.findPage({
-            filter: `created_at:<=${new Date().toISOString().split('T')[0]}`,
+            // Use `<` (strictly before today) rather than `<=` so today's in-progress
+            // sends are excluded, matching this method's contract ("excluding today").
+            // Today's partial count can be lower than a finished prior day; including it
+            // would drop the warmup base mid-day and make the limit regress instead of
+            // scaling day-over-day off the last complete day's volume.
+            filter: `created_at:<${new Date().toISOString().split('T')[0]}`,
             order: 'csd_email_count DESC',
             limit: 1
         });
