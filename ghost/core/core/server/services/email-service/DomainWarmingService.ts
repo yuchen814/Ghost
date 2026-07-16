@@ -114,7 +114,12 @@ export class DomainWarmingService {
         }
 
         const count = result.data[0].get('csd_email_count');
-        return count != null ? count : 0;
+        // Use strict inequality (!==) per the project's equality rule. The previous
+        // loose `count != null` relied on coercion to treat BOTH null and undefined as
+        // "no data"; csd_email_count is typed number | null | undefined, so we check
+        // both explicitly. A bare `count !== null` would leak an undefined value to
+        // callers instead of falling back to 0.
+        return count !== null && count !== undefined ? count : 0;
     }
 
     /**
