@@ -65,7 +65,6 @@ command -v yarn >/dev/null 2>&1 || fail "yarn is not installed. Ghost uses yarn 
 # Ghost points husky at .github/hooks via the root "prepare" script. Honour
 # whatever that script says so this stays correct if the directory ever moves.
 HOOKS_DIR="$(node -e '
-const {execSync} = require("child_process");
 const prepare = (require("./package.json").scripts || {}).prepare || "";
 const match = prepare.match(/husky\s+install\s+(\S+)/);
 process.stdout.write(match ? match[1] : ".husky");
@@ -99,7 +98,8 @@ backup_existing() {
     local target="$1"
     [ -e "$target" ] || return 0
     if [ "$FORCE" = false ]; then
-        local backup="${target}.bak.$(date +%Y%m%d%H%M%S)"
+        local backup
+        backup="${target}.bak.$(date +%Y%m%d%H%M%S)"
         cp "$target" "$backup"
         info "  backed up $(basename "$target") -> $(basename "$backup")"
     fi
@@ -202,6 +202,7 @@ hook_grey='\033[0;90m'
 hook_no_color='\033[0m'
 
 hook_step() { echo -e "${hook_grey}› $*${hook_no_color}"; }
+hook_note() { echo -e "${hook_grey}$*${hook_no_color}"; }
 hook_pass() { echo -e "${hook_green}✔${hook_no_color} $*"; }
 hook_warn() { echo -e "${hook_yellow}!${hook_no_color} $*"; }
 hook_fail() { echo -e "${hook_red}✖ $*${hook_no_color}" >&2; }
@@ -266,7 +267,7 @@ if [ -f .gitmodules ]; then
 
             for SUB in $MOD_SUBMODULES; do
                 git reset --quiet HEAD "$SUB"
-                echo -e "  ${hook_grey}unstaged: $SUB${hook_no_color}"
+                hook_note "  unstaged: $SUB"
             done
 
             if output=$(git diff --cached --name-only) && [ -z "$output" ]; then
@@ -326,7 +327,8 @@ for file in "${STAGED[@]}"; do
         esac
 
         if echo "$line" | grep -qE '(^|[^a-zA-Z0-9_.-])(npm[[:space:]]+(install|i|ci|run|add)([[:space:]]|$)|npx[[:space:]])'; then
-            NPM_OFFENDERS="${NPM_OFFENDERS}  ${file}: $(echo "$line" | sed 's/^[[:space:]]*//')"$'\n'
+            trimmed="${line#"${line%%[![:space:]]*}"}"
+            NPM_OFFENDERS="${NPM_OFFENDERS}  ${file}: ${trimmed}"$'\n'
         fi
     done < <(hook_added_lines "$file")
 done
@@ -334,7 +336,7 @@ done
 if [ -n "$NPM_OFFENDERS" ]; then
     hook_fail "Ghost uses yarn v1, but these added lines call npm/npx:"
     printf '%s' "$NPM_OFFENDERS" >&2
-    echo -e "${hook_grey}  Use the yarn equivalent, or append 'ghost-hooks:allow-npm' to the line if npm is genuinely required.${hook_no_color}" >&2
+    hook_note "  Use the yarn equivalent, or append 'ghost-hooks:allow-npm' to the line if npm is genuinely required." >&2
     status=1
 fi
 
@@ -380,7 +382,7 @@ done
 if [ $status -ne 0 ]; then
     echo >&2
     hook_fail "pre-commit checks failed."
-    echo -e "${hook_grey}Bypass (not recommended): SKIP_HOOKS=1 git commit${hook_no_color}" >&2
+    hook_note "Bypass (not recommended): SKIP_HOOKS=1 git commit" >&2
 fi
 
 exit $status
@@ -466,7 +468,7 @@ fi
 if [ $status -ne 0 ]; then
     echo >&2
     hook_fail "pre-push checks failed."
-    echo -e "${hook_grey}Bypass (not recommended): SKIP_HOOKS=1 git push${hook_no_color}" >&2
+    hook_note "Bypass (not recommended): SKIP_HOOKS=1 git push" >&2
 fi
 
 exit $status
