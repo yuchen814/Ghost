@@ -72,13 +72,22 @@ log "Repository: ${bold}${REPO_ROOT}${nc}"
 # of .husky. Honour whatever `prepare` says instead of hardcoding a path.
 # ---------------------------------------------------------------------------
 
-HOOKS_DIR=$(node -e '
+# Prints "<dir>\t<source>" so we can report accurately even when `prepare`
+# explicitly names .husky.
+HOOKS_INFO=$(node -e '
 const s = (require("./package.json").scripts || {}).prepare || "";
 const m = s.match(/husky\s+install\s+(\S+)/);
-process.stdout.write(m ? m[1] : ".husky");
-' 2>/dev/null || echo ".husky")
+process.stdout.write(m ? m[1] + "\tprepare" : ".husky\tdefault");
+' 2>/dev/null || printf '.husky\tdefault')
 
-log "Hooks directory: ${bold}${HOOKS_DIR}${nc} (from package.json \"prepare\")"
+HOOKS_DIR=${HOOKS_INFO%%$'\t'*}
+if [ "${HOOKS_INFO##*$'\t'}" = "prepare" ]; then
+    HOOKS_SOURCE="from package.json \"prepare\""
+else
+    HOOKS_SOURCE="husky default; no \"prepare\" script found"
+fi
+
+log "Hooks directory: ${bold}${HOOKS_DIR}${nc} (${HOOKS_SOURCE})"
 
 if [ "$DRY_RUN" = "1" ]; then
     log "${bold}--dry-run${nc}: no files will be written."
